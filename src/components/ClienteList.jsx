@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 const ClientList = ({ clientes, onEdit, onDelete }) => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [modalType, setModalType] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleOpenModal = (cliente, type) => {
     setSelectedClient(cliente);
@@ -46,18 +47,37 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
     XLSX.writeFile(workbook, 'reporte_clientes.xlsx');
   };
 
+  // Filtrar clientes basándose en el término de búsqueda
+  const filteredClientes = clientes.filter((cliente) => {
+    const fullName = `${cliente.nombre} ${cliente.apellido}`.toLowerCase();
+    return (
+      fullName.includes(searchTerm.toLowerCase()) ||
+      cliente.telefono.includes(searchTerm) ||
+      cliente.correoelectronico.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
   return (
     <>
       <div className="d-flex justify-content-between mb-3">
         <h2>Listado de Clientes</h2>
-        <button
+        <div className="d-flex">
+          <input
+            type="text"
+            className="form-control me-2"
+            placeholder="Buscar cliente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button
                   className="btn btn-sm"
                   onClick={generateExcelReport}
                   title="Editar"
-                  style={{ backgroundColor: 'green', color: 'white', border: 'solid 1px', height:'100%'}}
+                  style={{ backgroundColor: 'green', color: 'white', border: 'solid 1px', height:'80%'}}
                 >
                   <i class="bi bi-file-earmark-excel"></i>
                 </button>
+        </div>
       </div>
       <table className="table table-striped">
         <thead>
@@ -72,7 +92,7 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
           </tr>
         </thead>
         <tbody>
-          {clientes.map((cliente) => (
+          {filteredClientes.map((cliente) => (
             <tr key={cliente.clienteid}>
               <td>{cliente.nombre}</td>
               <td>{cliente.apellido}</td>
@@ -120,7 +140,6 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
           ))}
         </tbody>
       </table>
-
       {/* Modal */}
       {selectedClient && (
         <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
