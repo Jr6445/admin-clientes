@@ -37,15 +37,6 @@ Antes de comenzar, asegúrate de tener instalado:
    # o si usas yarn
    yarn install
    ```
-
-3. **Configurar Variables de Entorno**:
-
-   Crea un archivo `.env` en la raíz del proyecto y añade la URL de tu backend:
-
-   ```env
-   REACT_APP_API_URL=http://localhost:4000/api
-   ```
-
 ---
 
 ## Uso
