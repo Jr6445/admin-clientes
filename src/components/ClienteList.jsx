@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
 
 const ClientList = ({ clientes, onEdit, onDelete }) => {
   const [selectedClient, setSelectedClient] = useState(null);
-  const [modalType, setModalType] = useState(null); // 'direcciones' o 'documentos'
+  const [modalType, setModalType] = useState(null);
 
   const handleOpenModal = (cliente, type) => {
     setSelectedClient(cliente);
@@ -14,9 +15,50 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
     setModalType(null);
   };
 
+  // Función para generar y descargar el reporte en formato Excel
+  const generateExcelReport = () => {
+    const data = clientes.map((cliente) => {
+      const direcciones = cliente.direcciones
+        .map((d) => `${d.direccion} (${d.ciudad}, ${d.estado}, ${d.codigopostal})`)
+        .join(' | ');
+
+      const documentos = cliente.documentos
+        .map((d) => `${d.tipodocumento}: ${d.numerodocumento}`)
+        .join(' | ');
+
+      return {
+        ClienteID: cliente.clienteid,
+        Nombre: cliente.nombre,
+        Apellido: cliente.apellido,
+        Teléfono: cliente.telefono,
+        CorreoElectrónico: cliente.correoelectronico,
+        Direcciones: direcciones,
+        Documentos: documentos,
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+
+    // Generar y descargar el archivo
+    XLSX.writeFile(workbook, 'reporte_clientes.xlsx');
+  };
 
   return (
     <>
+      <div className="d-flex justify-content-between mb-3">
+        <h2>Listado de Clientes</h2>
+        <button
+                  className="btn btn-sm"
+                  onClick={generateExcelReport}
+                  title="Editar"
+                  style={{ backgroundColor: 'green', color: 'white', border: 'solid 1px', height:'100%'}}
+                >
+                  <i class="bi bi-file-earmark-excel"></i>
+                </button>
+      </div>
       <table className="table table-striped">
         <thead>
           <tr>
@@ -41,9 +83,9 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
                   className="btn btn-link text-primary"
                   onClick={() => handleOpenModal(cliente, 'direcciones')}
                   title="Ver Direcciones"
-                  style={{textDecoration:'none', color:'#019df4'}}
+                  style={{ textDecoration: 'none', color: '#019df4' }}
                 >
-                  <i className="bi bi-geo-alt-fill" style={{color:'#019df4'}}></i> {cliente.direcciones.length}
+                  <i className="bi bi-geo-alt-fill" style={{ color: '#019df4' }}></i> {cliente.direcciones.length}
                 </button>
               </td>
               <td className="text-center">
@@ -51,9 +93,9 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
                   className="btn btn-link text-primary"
                   onClick={() => handleOpenModal(cliente, 'documentos')}
                   title="Ver Documentos"
-                  style={{textDecoration:'none'}}
+                  style={{ textDecoration: 'none' }}
                 >
-                  <i className="bi bi-file-earmark-text-fill" style={{color:'#019df4'}}></i> {cliente.documentos.length}
+                  <i className="bi bi-file-earmark-text-fill" style={{ color: '#019df4' }}></i> {cliente.documentos.length}
                 </button>
               </td>
               <td>
@@ -61,7 +103,7 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
                   className="btn btn-sm me-2 "
                   onClick={() => onEdit(cliente)}
                   title="Editar"
-                  style={{backgroundColor:'white', color:'#019df4', border:'solid 1px'}}
+                  style={{ backgroundColor: 'white', color: '#019df4', border: 'solid 1px' }}
                 >
                   <i className="bi bi-pencil"></i>
                 </button>
@@ -69,7 +111,7 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
                   className="btn btn-sm"
                   onClick={() => onDelete(cliente.clienteid)}
                   title="Eliminar"
-                  style={{backgroundColor:'#019df4', color:'white'}}
+                  style={{ backgroundColor: '#019df4', color: 'white' }}
                 >
                   <i className="bi bi-trash"></i>
                 </button>
@@ -81,28 +123,14 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
 
       {/* Modal */}
       {selectedClient && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          role="dialog"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-        >
-          <div
-            className="modal-dialog modal-lg animate__animated animate__fadeInDown"
-            role="document"
-          >
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg animate__animated animate__fadeInDown" role="document">
             <div className="modal-content">
-              <div className="modal-header" style={{backgroundColor:'#019df4', color:'white'}}>
+              <div className="modal-header" style={{ backgroundColor: '#019df4', color: 'white' }}>
                 <h5 className="modal-title">
-                  {modalType === 'direcciones' ? 'Direcciones' : 'Documentos'} -{' '}
-                  {selectedClient.nombre} {selectedClient.apellido}
+                  {modalType === 'direcciones' ? 'Direcciones' : 'Documentos'} - {selectedClient.nombre} {selectedClient.apellido}
                 </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                  aria-label="Cerrar"
-                ></button>
+                <button type="button" className="btn-close" onClick={handleCloseModal} aria-label="Cerrar"></button>
               </div>
               <div className="modal-body">
                 {modalType === 'direcciones' && (
@@ -147,11 +175,7 @@ const ClientList = ({ clientes, onEdit, onDelete }) => {
                 )}
               </div>
               <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
+                <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
                   Cerrar
                 </button>
               </div>

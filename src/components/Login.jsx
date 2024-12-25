@@ -11,7 +11,7 @@ const Login = ({ onLogin }) => {
     try {
       const response = await api.post('/auth/login', { nombreUsuario, contrasena });
       localStorage.setItem('token', response.data.token); // Guardar el token en localStorage
-      onLogin(); // Llamar al callback del padre
+      onLogin();
     } catch (err) {
       setError('Credenciales inválidas');
     }
